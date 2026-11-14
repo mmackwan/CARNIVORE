@@ -610,7 +610,7 @@ function renderHistory() {
     meta.className = "meta";
     meta.innerHTML = `
       <div class="d">${date}</div>
-      <div class="s">${round0(sums.foodKcal)} kcal • P ${round0(sums.p)} • F ${round0(sums.f)} • C ${round0(sums.c)} • Alc ${round0(sums.alcKcal)} kcal</div>
+      <div class="s">${round0(sums.totalKcal)} total kcal • P ${round0(sums.p)} • F ${round0(sums.f)} • C ${round0(sums.c)} • Alc ${round0(sums.alcKcal)} kcal</div>
     `;
 
     const actions = document.createElement("div");
@@ -1344,12 +1344,13 @@ function computeSumsForDay(day) {
     sums.alcC += d.c * mult;
   });
 
-  return sums;
+  return { ...sums, totalKcal: sums.foodKcal + sums.alcKcal };
 }
 
 function recalcTotals() {
   const sums = computeSumsForDay(dayDraft);
 
+  $("tTotalKcal").textContent = String(round0(sums.totalKcal));
   $("tFoodKcal").textContent = String(round0(sums.foodKcal));
   $("tP").textContent = String(round0(sums.p));
   $("tF").textContent = String(round0(sums.f));
@@ -1359,7 +1360,7 @@ function recalcTotals() {
 
   // progress bars use computed targets
   const ct = readComputedTargets();
-  const calPct = ct.kcal > 0 ? (sums.foodKcal / ct.kcal) * 100 : 0;
+  const calPct = ct.kcal > 0 ? (sums.totalKcal / ct.kcal) * 100 : 0;
   const pPct = ct.p > 0 ? (sums.p / ct.p) * 100 : 0;
   const fPct = ct.f > 0 ? (sums.f / ct.f) * 100 : 0;
   const cPct = ct.c > 0 ? (sums.c / ct.c) * 100 : 0;
@@ -1441,7 +1442,7 @@ function showWeeklyReport() {
 
   last.forEach(d => {
     const sums = computeSumsForDay(history[d]);
-    totalKcal += sums.foodKcal;
+    totalKcal += sums.totalKcal;
     totalP += sums.p;
     totalF += sums.f;
     totalC += sums.c;
@@ -1451,7 +1452,7 @@ function showWeeklyReport() {
   const n = last.length;
   alert(
     `Weekly (last ${n} saved days)\n\n` +
-    `Avg Food kcal: ${round0(totalKcal/n)}\n` +
+    `Avg Total kcal: ${round0(totalKcal/n)}\n` +
     `Avg Protein: ${round0(totalP/n)} g\n` +
     `Avg Fat: ${round0(totalF/n)} g\n` +
     `Avg Carbs: ${round0(totalC/n)} g\n` +
